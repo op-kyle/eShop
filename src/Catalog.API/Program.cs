@@ -19,6 +19,7 @@ app.MapDefaultEndpoints();
 app.UseStatusCodePages();
 
 app.MapCatalogApi();
+app.MapInjectionTestApi();
 
 app.UseDefaultOpenApi();
 app.Run();
