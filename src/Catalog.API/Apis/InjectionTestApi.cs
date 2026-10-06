@@ -46,6 +46,28 @@ public static class InjectionTestApi
             return TypedResults.Ok(items);
         });
 
+        // [VULN] OS command injection: user input concatenated into a shell command
+        group.MapGet("/cmd", (string host) =>
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo("/bin/sh", "-c \"ping -c 1 " + host + "\"")
+            {
+                RedirectStandardOutput = true
+            };
+            using var process = System.Diagnostics.Process.Start(psi)!;
+            var output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+            return TypedResults.Text(output);
+        });
+
+        // [VULN] XPath injection: user input concatenated into an XPath expression
+        group.MapGet("/xpath", (string user) =>
+        {
+            var doc = new System.Xml.XmlDocument();
+            doc.LoadXml("<users><user name=\"admin\" role=\"admin\"/><user name=\"guest\" role=\"guest\"/></users>");
+            var node = doc.SelectSingleNode("//user[@name='" + user + "']");
+            return TypedResults.Text(node?.OuterXml ?? "not found");
+        });
+
         return app;
     }
 }
