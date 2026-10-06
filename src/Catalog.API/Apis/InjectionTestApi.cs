@@ -68,6 +68,22 @@ public static class InjectionTestApi
             return TypedResults.Text(node?.OuterXml ?? "not found");
         });
 
+        // [VULN] Log forging: unsanitized user input written to logs (CRLF can fake entries)
+        group.MapPost("/log", (ILoggerFactory loggerFactory, string username) =>
+        {
+            var logger = loggerFactory.CreateLogger("InjectionTest");
+            logger.LogInformation("Login failed for user " + username);
+            return TypedResults.NoContent();
+        });
+
+        // [VULN] Reflected XSS: user input written into an HTML response without encoding
+        group.MapGet("/xss", (string q) =>
+            Results.Content("<html><body><h1>Results for " + q + "</h1></body></html>", "text/html"));
+
+        // [SAFE] Control for false positives: output is HTML-encoded
+        group.MapGet("/xss/safe", (string q) =>
+            Results.Content("<html><body><h1>Results for " + System.Net.WebUtility.HtmlEncode(q) + "</h1></body></html>", "text/html"));
+
         return app;
     }
 }
