@@ -19,6 +19,7 @@ app.MapDefaultEndpoints();
 app.UseStatusCodePages();
 
 app.MapCatalogApi();
+app.MapCryptoTestApi();
 
 app.UseDefaultOpenApi();
 app.Run();
